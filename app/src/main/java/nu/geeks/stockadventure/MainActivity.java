@@ -1,11 +1,18 @@
 package nu.geeks.stockadventure;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.SeekBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -13,10 +20,19 @@ import java.util.Random;
 
 public class MainActivity extends Activity {
 
+    TextView tSelectedStock;
+    TextView tTotalCash;
+    TextView tBuy;
+
+    SeekBar amountBar;
+    Button bBuy, bSell, bNextDay;
+
     ListView list;
     ArrayList<Business> businesses;
     ArrayAdapter<Business> adapter;
     Random rand = new Random();
+
+    Business selectedBusiness;
 
     int N = 100; //Number of stocks.
 
@@ -25,15 +41,98 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Initialize all buttons and such
+        initializeView();
+
+        //Update the (not selected) business.
+        updateSelectedBusiness();
+
+        //Set the clickListeners
+        initializeListeners();
+
+
+    }
+
+    private void initializeView(){
+
+        tSelectedStock = (TextView) findViewById(R.id.tSelectedStock);
+        tTotalCash = (TextView) findViewById(R.id.tMOwn);
+        tBuy = (TextView) findViewById(R.id.tMBet);
+        amountBar = (SeekBar) findViewById(R.id.seekBar);
+        bBuy = (Button) findViewById(R.id.bBuy);
+        bSell = (Button) findViewById(R.id.bSell);
+
+        bNextDay = (Button) findViewById(R.id.bNextDay);
+
         list = (ListView) findViewById(R.id.listView);
 
         businesses = new ArrayList<Business>();
 
         fillList();
-
-        adapter = new ArrayAdapter<Business>(this, android.R.layout.simple_list_item_1, android.R.id.text1, businesses);
+        //TODO - lista ut hur man får sublist
+        adapter = new ArrayAdapter<Business>(this, android.R.layout.simple_list_item_2, android.R.id.text1, businesses);
 
         list.setAdapter(adapter);
+
+    }
+
+    private void initializeListeners(){
+
+        amountBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        bNextDay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateStocks();
+            }
+        });
+
+        list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle(businesses.get(position).getName())
+                        .setMessage(businesses.get(position).getInfo())
+                        .setPositiveButton("Ok!", null)
+                        .show();
+
+                return false;
+            }
+        });
+
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                selectedBusiness = businesses.get(position);
+                updateSelectedBusiness();
+
+            }
+        });
+
+    }
+
+    private void updateStocks(){
+        for(Business b : businesses){
+            b.nextDay();
+        }
+        adapter.notifyDataSetChanged();
+        updateSelectedBusiness();
     }
 
     private void fillList(){
@@ -57,8 +156,16 @@ public class MainActivity extends Activity {
 
             int value = rand.nextInt(1000) + 10;
 
-            Business b = new Business(name, value);
+            Business b = new Business(name, value, (rand.nextInt(9)+1));
             businesses.add(b);
+        }
+    }
+
+    private void updateSelectedBusiness(){
+        if(selectedBusiness == null){
+            tSelectedStock.setText("Select a stock");
+        }else{
+            tSelectedStock.setText(selectedBusiness.getName() + " @ " + selectedBusiness.getValue() + " €");
         }
     }
 

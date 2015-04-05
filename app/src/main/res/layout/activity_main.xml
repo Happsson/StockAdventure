@@ -15,7 +15,9 @@
             android:layout_width="fill_parent"
             android:layout_height="213dp"
             android:id="@+id/listView"
-            android:layout_centerHorizontal="true" />
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="20dp"
+            android:paddingBottom="20dp" />
 
     </LinearLayout>
 
@@ -24,8 +26,7 @@
         android:layout_height="wrap_content"
         android:text="Buy stock"
         android:id="@+id/bBuy"
-        android:layout_marginBottom="61dp"
-        android:layout_above="@+id/seekBar"
+        android:layout_below="@+id/tSelectedStock"
         android:layout_alignParentStart="true" />
 
     <SeekBar
@@ -42,7 +43,7 @@
         android:text="You have 1000 €"
         android:id="@+id/tMOwn"
         android:layout_centerVertical="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignEnd="@+id/linearLayout" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -50,7 +51,7 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Use 500 € (50 %)"
         android:id="@+id/tMBet"
-        android:layout_centerVertical="true"
+        android:layout_alignTop="@+id/tMOwn"
         android:layout_alignParentStart="true" />
 
     <Button
@@ -58,8 +59,8 @@
         android:layout_height="wrap_content"
         android:text="Sell stock"
         android:id="@+id/bSell"
-        android:layout_alignTop="@+id/bBuy"
-        android:layout_alignParentEnd="true" />
+        android:layout_below="@+id/bBuy"
+        android:layout_alignParentStart="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -69,5 +70,13 @@
         android:id="@+id/tSelectedStock"
         android:layout_below="@+id/tMBet"
         android:layout_alignParentStart="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Next day"
+        android:id="@+id/bNextDay"
+        android:layout_below="@+id/bBuy"
+        android:layout_alignStart="@+id/tMOwn" />
 
 </RelativeLayout>
