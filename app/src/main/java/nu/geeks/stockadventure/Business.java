@@ -1,11 +1,12 @@
 package nu.geeks.stockadventure;
 
+import java.util.Comparator;
 import java.util.Random;
 
 /**
  * Created by hannespa on 15-04-05.
  */
-public class Business {
+public class Business{
 
     Random rand;
     String name;    //Stock name
@@ -78,17 +79,22 @@ public class Business {
      *
      */
     public void nextDay(){
+
+        //TODO - this doesnt really work. To random, and big stocks gets to big.
+
         previousValue = value;
         day++;
 
         int riskValue = rand.nextInt(20);
 
         if(!stockDead) {
-            int val = (value * riskFactor/10)+1; //make sure val isn't 0.
-            if (riskValue < riskFactor) { //Higher risk with risky stocks
-                value -= rand.nextInt(val);
-            } else {
-               value += rand.nextInt(val);
+            int val = (value * riskFactor/100)+1; //make sure val isn't 0.
+            if(val > 0) { //This is a bad fix, somethime val get bigger thatn INTEGTER.MAX_VALUE and flips.
+                if (riskValue < riskFactor) { //Higher risk with risky stocks
+                    value -= rand.nextInt(val);
+                } else {
+                    value += rand.nextInt(val);
+                }
             }
         }
 
@@ -181,6 +187,15 @@ public class Business {
 
     }
 
+
+    public int sell(){
+        int investment = userOwn*value;
+        userOwn = 0;
+        invested = 0;
+        return investment;
+
+    }
+
     /**
      * if the stock is not dead, this returns on the format:
      *  "Name (XX €/share)"
@@ -195,5 +210,12 @@ public class Business {
         }else{
             return "Dead stock!";
         }
+    }
+}
+
+class BusinessComparator implements Comparator<Business> {
+    @Override
+    public int compare(Business o1, Business o2) {
+        return o1.userOwn > o2.userOwn ? -1 : o1.userOwn == o2.userOwn ? 0 : 1;
     }
 }

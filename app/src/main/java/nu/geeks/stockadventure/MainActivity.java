@@ -2,6 +2,7 @@ package nu.geeks.stockadventure;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,6 +14,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -27,6 +29,9 @@ public class MainActivity extends Activity {
     int moneyToBuyFor;
     int balance;
     int progressBar;
+    int days = 0;
+
+    boolean gameWon = false;
 
     SeekBar amountBar;
     Button bBuy, bSell, bNextDay;
@@ -35,6 +40,8 @@ public class MainActivity extends Activity {
     ArrayList<Business> businesses;
     ArrayAdapter<Business> adapter;
     Random rand = new Random();
+
+    ArrayList<Business> stockPortfolio;
 
     Business selectedBusiness;
 
@@ -45,7 +52,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        stockPortfolio = new ArrayList<Business>();
 
 
         //Initialize all buttons and such
@@ -57,15 +64,65 @@ public class MainActivity extends Activity {
         progressBar = 50;
         balance = 1000;
         updateBalance();
+        updateMoneyToByFor();
 
         //Set the clickListeners
         initializeListeners();
 
+        welcome(); //Print welcome message.
 
+
+    }
+
+    private void welcome(){
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle("Welcome to Stock Adventure!")
+                .setMessage("Press and hold on a stock to get more info. Every day the stocks you " +
+                        "own will be at the top of the list." +
+                        "\n\nPress the menu-button" +
+                        " on your phone to access your stock portfolio. \n\n" +
+                        "Make 10 000 000 € to win the game! Good luck!")
+                .setPositiveButton("Got it!", null)
+                .show();
     }
 
     private void updateBalance(){
         tTotalCash.setText("Tot " + balance + " €.");
+
+        if(balance > 10000000 && !gameWon){
+            gameWon = true;
+            new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("AWESOME!!!")
+                    .setMessage("Oh happy days! You did it! You made " + balance + " € in " +
+                            "just " + days + " days!")
+                    .setPositiveButton("Keep playing!", null)
+                    .setNegativeButton("Restart game!", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            resetGame();
+                        }
+
+                    })
+                    .show();
+
+        }
+    }
+
+    private void resetGame(){
+
+        //TODO - Is this all that needs to be done?
+        balance = 1000;
+        days = 0;
+        progressBar = 50;
+        selectedBusiness = null;
+        businesses.clear();
+        fillList();
+        updateMoneyToByFor();
+        updateBalance();
+        updateSelectedBusiness();
+        gameWon = false;
+
+
     }
 
     private void initializeView(){
@@ -142,7 +199,7 @@ public class MainActivity extends Activity {
         bNextDay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                updateStocks();
+                updateStocksNextDay();
             }
         });
 
@@ -169,10 +226,25 @@ public class MainActivity extends Activity {
             }
         });
 
+        bSell.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(selectedBusiness!=null){
+                    sell(selectedBusiness);
+                }else{
+                    Toast.makeText(getApplicationContext(), "Select a stock to sell!", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
         bBuy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                buy(selectedBusiness);
+                if(selectedBusiness!= null){
+                    buy(selectedBusiness);
+                }else{
+                    Toast.makeText(getApplicationContext(), "Select a stock to buy!", Toast.LENGTH_LONG).show();
+                }
             }
         });
 
@@ -182,16 +254,36 @@ public class MainActivity extends Activity {
        balance -= business.buyStock(moneyToBuyFor);
         updateBalance();
         updateMoneyToByFor();
+        if(business.userOwn > 0) stockPortfolio.add(business); //If user could afford it, add to list.
         adapter.notifyDataSetChanged(); //update listView
 
 
     }
 
-    private void updateStocks(){
+    private void sell(Business business){
+        if(business.userOwn==0){
+            Toast.makeText(getApplicationContext(), "You don't own any shares of this stock.", Toast.LENGTH_LONG).show();
+        }else{
+           balance += business.sell();
+            stockPortfolio.remove(business);
+            updateBalance();
+            updateMoneyToByFor();
+            adapter.notifyDataSetChanged();
+        }
+    }
+
+    private void updateStocksNextDay(){
+        days++;
         for(Business b : businesses){
             b.nextDay();
         }
+        BusinessComparator comp = new BusinessComparator();
+
+        adapter.sort(comp);
         adapter.notifyDataSetChanged();
+
+        list.setSelectionAfterHeaderView();
+
         updateSelectedBusiness();
     }
 
@@ -232,10 +324,7 @@ public class MainActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        menu.clear();
-        menu.add("test");
         getMenuInflater().inflate(R.menu.menu_main, menu);
-
         return true;
     }
 
@@ -247,7 +336,28 @@ public class MainActivity extends Activity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.stockPortfolio) {
+            if(stockPortfolio == null || stockPortfolio.size() == 0){
+                new AlertDialog.Builder(MainActivity.this)
+                        .setMessage("You don't own any stocks at the moment. Buy some stocks and" +
+                                " you'll be able to keep track of them here!")
+                        .setPositiveButton("Ok!", null)
+                        .show();
+            }else{
+                StringBuilder stocks = new StringBuilder();
+                stocks.append("Your stocks: \n");
+                for(Business b : stockPortfolio){
+                    stocks.append(b.name + " @ " + b.value + ". You bought " + b.userOwn + " shares" +
+                            " for " + b.invested + " €. Now profit " + ((b.value*b.userOwn) - b.invested)+" €.\n\n");
+                }
+                String print = stocks.toString();
+
+                new AlertDialog.Builder(MainActivity.this)
+                        .setMessage(print)
+                        .setPositiveButton("Cool!", null)
+                        .show();
+            }
+
             return true;
         }
 
