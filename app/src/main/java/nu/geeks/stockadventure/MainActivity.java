@@ -6,11 +6,14 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SeekBar;
+import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -69,10 +72,28 @@ public class MainActivity extends Activity {
         businesses = new ArrayList<Business>();
 
         fillList();
-        //TODO - lista ut hur man får sublist
-        adapter = new ArrayAdapter<Business>(this, android.R.layout.simple_list_item_2, android.R.id.text1, businesses);
+
+        adapter = new ArrayAdapter<Business>(this, android.R.layout.simple_list_item_2, android.R.id.text1, businesses){
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+
+                View view = super.getView(position, convertView, parent);
+
+                TextView text1 = (TextView) view.findViewById(android.R.id.text1);
+                TextView text2 = (TextView) view.findViewById(android.R.id.text2);
+
+                text1.setText(businesses.get(position).toString());
+                text2.setText(businesses.get(position).getUserOwn());
+
+                return view;
+            }
+        };
+
+
+
 
         list.setAdapter(adapter);
+
 
     }
 

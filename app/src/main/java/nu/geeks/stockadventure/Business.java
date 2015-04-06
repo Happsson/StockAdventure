@@ -28,6 +28,10 @@ public class Business {
 //        for(int i = 0; i < 10; i++) previousValues[i] = 0;
     }
 
+    public String getUserOwn(){
+        return "You own " + userOwn + " shares worh " + (userOwn*value) + " €.";
+    }
+
     /**
      * Buy stock for the given amount.
      * Calculates how many shares the amount can buy, and returns how much it costs.
