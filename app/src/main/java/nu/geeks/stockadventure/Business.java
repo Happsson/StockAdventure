@@ -8,6 +8,7 @@ import java.util.Random;
  */
 public class Business{
 
+    //TODO - make all these private and use getters and setters instead
     Random rand;
     String name;    //Stock name
     int value, previousValue;  //cost per share
@@ -56,7 +57,7 @@ public class Business{
 
         if(value != 0) {
             int numShares = (amount / value); //Number of shares the money will buy.
-            userOwn = numShares;
+            userOwn += numShares;
             invested += numShares*value; //Update amount invested in this stock
             return (numShares*value); //return what's left.
         }else {
@@ -187,7 +188,12 @@ public class Business{
 
     }
 
-
+    /**
+     * Sell all shares of this stock.
+     * Returns return on investment
+     *
+     * @return int ROI
+     */
     public int sell(){
         int investment = userOwn*value;
         userOwn = 0;

@@ -25,7 +25,9 @@ public class MainActivity extends Activity {
     TextView tSelectedStock;
     TextView tTotalCash;
     TextView tBuy;
+    TextView tDay;
 
+    int speed = 1000;
     int moneyToBuyFor;
     int balance;
     int progressBar;
@@ -45,7 +47,7 @@ public class MainActivity extends Activity {
 
     Business selectedBusiness;
 
-    int N = 100; //Number of stocks.
+    int N = 20; //Number of stocks.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,6 +136,7 @@ public class MainActivity extends Activity {
         bBuy = (Button) findViewById(R.id.bBuy);
         bSell = (Button) findViewById(R.id.bSell);
 
+        tDay = (TextView) findViewById(R.id.tDay);
         bNextDay = (Button) findViewById(R.id.bNextDay);
 
         list = (ListView) findViewById(R.id.listView);
@@ -251,12 +254,19 @@ public class MainActivity extends Activity {
     }
 
     private void buy(Business business){
-       balance -= business.buyStock(moneyToBuyFor);
-        updateBalance();
-        updateMoneyToByFor();
-        if(business.userOwn > 0) stockPortfolio.add(business); //If user could afford it, add to list.
-        adapter.notifyDataSetChanged(); //update listView
+       if(moneyToBuyFor >= business.value) {
+           balance -= business.buyStock(moneyToBuyFor);
+           updateBalance();
+           updateMoneyToByFor();
+           if (business.userOwn > 0)
+               stockPortfolio.add(business); //If user could afford it, add to list.
+           adapter.notifyDataSetChanged(); //update listView
+       }else if(balance >= business.value){
+           Toast.makeText(getApplicationContext(), "You didn't use enough money.", Toast.LENGTH_LONG).show();
+       }else{
+            Toast.makeText(getApplicationContext(), "You can't afford this stock.", Toast.LENGTH_LONG).show();
 
+        }
 
     }
 
@@ -274,6 +284,7 @@ public class MainActivity extends Activity {
 
     private void updateStocksNextDay(){
         days++;
+        tDay.setText("Day " + days);
         for(Business b : businesses){
             b.nextDay();
         }
@@ -324,18 +335,21 @@ public class MainActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
+        // All menu items are added in the xml, not here.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
+        //TODO - this is not where this should be done. Find out why stockPortfolio holds empty stocks
+        for(Business b : stockPortfolio){
+            if(b.userOwn == 0) stockPortfolio.remove(b); //Remove stocks not own.
+        }
+
+        //handle menu button presses.
         if (id == R.id.stockPortfolio) {
             if(stockPortfolio == null || stockPortfolio.size() == 0){
                 new AlertDialog.Builder(MainActivity.this)
@@ -348,7 +362,7 @@ public class MainActivity extends Activity {
                 stocks.append("Your stocks: \n");
                 for(Business b : stockPortfolio){
                     stocks.append(b.name + " @ " + b.value + ". You bought " + b.userOwn + " shares" +
-                            " for " + b.invested + " €. Now profit " + ((b.value*b.userOwn) - b.invested)+" €.\n\n");
+                            " for " + b.invested + " €. Net profit " + ((b.value*b.userOwn) - b.invested)+" €.\n\n");
                 }
                 String print = stocks.toString();
 
@@ -359,6 +373,26 @@ public class MainActivity extends Activity {
             }
 
             return true;
+        }
+
+
+        /*
+        TODO - this is in opposite order. Also should be changed to days per sec. Also
+        needs to be implemented. :)
+         */
+        else if(id == R.id.increaseSpeed){
+            speed += 1000;
+            int speedSec = speed / 1000;
+            Toast.makeText(getApplicationContext(), "Speed is now " + speedSec + " sec per day", Toast.LENGTH_LONG).show();
+        }else if(id == R.id.decreaseSpeed){
+            if((speed-1000) > 0 ){
+                speed -= 1000;
+                int speedSec = speed / 1000;
+                Toast.makeText(getApplicationContext(), "Speed is now " + speedSec + " sec per day", Toast.LENGTH_LONG).show();
+
+            }else{
+                Toast.makeText(getApplicationContext(), "Speed is zero, change day with button", Toast.LENGTH_LONG).show();
+            }
         }
 
         return super.onOptionsItemSelected(item);

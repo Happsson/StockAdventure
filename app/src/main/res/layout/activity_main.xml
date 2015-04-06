@@ -79,4 +79,14 @@
         android:layout_below="@+id/bBuy"
         android:layout_alignStart="@+id/tMOwn" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Day 1"
+        android:id="@+id/tDay"
+        android:layout_above="@+id/bNextDay"
+        android:layout_alignEnd="@+id/bNextDay"
+        android:singleLine="true" />
+
 </RelativeLayout>
