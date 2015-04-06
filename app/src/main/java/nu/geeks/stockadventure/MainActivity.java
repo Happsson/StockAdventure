@@ -10,12 +10,9 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SeekBar;
-import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -26,6 +23,10 @@ public class MainActivity extends Activity {
     TextView tSelectedStock;
     TextView tTotalCash;
     TextView tBuy;
+
+    int moneyToBuyFor;
+    int balance;
+    int progressBar;
 
     SeekBar amountBar;
     Button bBuy, bSell, bNextDay;
@@ -44,16 +45,27 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+
+
         //Initialize all buttons and such
         initializeView();
 
         //Update the (not selected) business.
         updateSelectedBusiness();
 
+        progressBar = 50;
+        balance = 1000;
+        updateBalance();
+
         //Set the clickListeners
         initializeListeners();
 
 
+    }
+
+    private void updateBalance(){
+        tTotalCash.setText("Tot " + balance + " €.");
     }
 
     private void initializeView(){
@@ -89,20 +101,31 @@ public class MainActivity extends Activity {
             }
         };
 
-
-
-
         list.setAdapter(adapter);
 
 
     }
 
+    private void updateMoneyToByFor(){
+        if(balance < 0 ){
+            //User is broke
+            tBuy.setText("Use 0 €(" + progressBar + "%)");
+        }else{
+            //User is not broke.
+            double percent = progressBar*0.01;
+            moneyToBuyFor = (int) (balance*percent);
+            tBuy.setText("Use " + moneyToBuyFor + " €(" + progressBar +"%)");
+        }
+    }
     private void initializeListeners(){
+
+        amountBar.setProgress(progressBar); //Set to 50.
 
         amountBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
+                progressBar = progress;
+                updateMoneyToByFor();
             }
 
             @Override
@@ -145,6 +168,22 @@ public class MainActivity extends Activity {
 
             }
         });
+
+        bBuy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                buy(selectedBusiness);
+            }
+        });
+
+    }
+
+    private void buy(Business business){
+       balance -= business.buyStock(moneyToBuyFor);
+        updateBalance();
+        updateMoneyToByFor();
+        adapter.notifyDataSetChanged(); //update listView
+
 
     }
 
@@ -193,7 +232,10 @@ public class MainActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
+        menu.clear();
+        menu.add("test");
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
         return true;
     }
 

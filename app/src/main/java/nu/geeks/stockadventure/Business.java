@@ -8,28 +8,40 @@ import java.util.Random;
 public class Business {
 
     Random rand;
-    String name;
-    int value, previousValue;
-    int riskFactor;
-    int day;
+    String name;    //Stock name
+    int value, previousValue;  //cost per share
+    int riskFactor; //how risky the stock is between 1 and 10, 10 beeing riskiest
+    int day; //Days the stock has been active.
     int userOwn; //number of shares
     boolean stockDead;
-    int[] previousValues;
+    int invested;
 
+    /**
+     * Constructor for a business. Set name, initial value/share and risk factor.
+     *
+     * @param name name of company
+     * @param value price per share
+     * @param riskFactor risk, 1 to 10. 1 being lowest risk and 10 being highest
+     */
     public Business(String name, int value, int riskFactor) {
         this.name = name;
         this.value = value;
         this.riskFactor = riskFactor;
         previousValue = 0;
-        day = 1;
+        day = 0;
         rand = new Random();
         userOwn = 0;
         stockDead = false;
-//        for(int i = 0; i < 10; i++) previousValues[i] = 0;
+        invested = 0;
     }
 
+    /**
+     * Get a string on the form "You own xx shares worth yy €."
+     *
+     * @return a string
+     */
     public String getUserOwn(){
-        return "You own " + userOwn + " shares worh " + (userOwn*value) + " €.";
+        return "You own " + userOwn + " shares worth " + (userOwn*value) + " €.";
     }
 
     /**
@@ -40,14 +52,31 @@ public class Business {
      * @return amount bought for
      */
     public int buyStock(int amount){
-        //TODO - this.
-        return 0;
+
+        if(value != 0) {
+            int numShares = (amount / value); //Number of shares the money will buy.
+            userOwn = numShares;
+            invested += numShares*value; //Update amount invested in this stock
+            return (numShares*value); //return what's left.
+        }else {
+            return 0;
+        }
     }
 
+    /**
+     * Get number of shares of this stock that the user owns.
+     *
+     * @return
+     */
     public int getUserShares(){
         return userOwn;
     }
 
+    /**
+     * Update the value of the stock based on its risk factor. Incremets the day.
+     * If the stock is dead, the value will always be 0.
+     *
+     */
     public void nextDay(){
         previousValue = value;
         day++;
@@ -55,7 +84,7 @@ public class Business {
         int riskValue = rand.nextInt(20);
 
         if(!stockDead) {
-            int val = (value * riskFactor/10)+1;
+            int val = (value * riskFactor/10)+1; //make sure val isn't 0.
             if (riskValue < riskFactor) { //Higher risk with risky stocks
                 value -= rand.nextInt(val);
             } else {
@@ -71,23 +100,53 @@ public class Business {
 
     }
 
-    public boolean compareName(String compare){
-        if(this.name.equals(compare)) return true;
+    /**
+     * Check if the name of this stock / business is the same as that stock / business.
+     *
+     * @param that business / stock name.
+     * @return true if identical.
+     */
+    public boolean compareName(String that){
+        if(this.name.equals(that)) return true;
         else return false;
     }
 
+    /**
+     * Get current value of stock (price per share)
+     *
+     * @return value of this stock / business
+     */
     public int getValue(){
         return this.value;
     }
 
+    /**
+     * Get the name of this stock / business
+     * @return String name of the stock / business.
+     */
     public String getName(){
         return this.name;
     }
 
+    /**
+     * How much the stock share price has changed since last day.
+     *
+     * @return int the change
+     */
     public int getChangeLastDay(){
-        return value - previousValue;
+        if(day == 0) {
+            return 0;
+        }else {
+            return value - previousValue;
+        }
     }
 
+    /**
+     * Get the change as a string, where a positive value will have a '+' and a negative value
+     * will have a '-'.
+     *
+     * @return
+     */
     public String getChangeLastDayString(){
         int change = getChangeLastDay();
 
@@ -98,14 +157,37 @@ public class Business {
         }
     }
 
+    /**
+     * Get info about the stock in this format
+     *
+     *      "Name
+     *          Risk factor: XX
+     *          Current value: YY
+     *          Change since yesterday: ZZ
+     *          You have invested LL €
+     *          Net profit: TT €.
+     *         "
+     *
+     * @return String info
+     */
     public String getInfo(){
 
         return name +
                 "\n Risk factor: " + riskFactor +
                 "\n Current value: " + value +
-                "\n Change since yesterday: " + getChangeLastDayString();
+                "\n Change since yesterday: " + getChangeLastDayString() +
+                "\n You have invested " + invested + " €." +
+                "\n Net profit: " + ((userOwn*value) - invested) +" €.";
+
     }
 
+    /**
+     * if the stock is not dead, this returns on the format:
+     *  "Name (XX €/share)"
+     *  else it returns "Dead stock!"
+     *
+     * @return
+     */
     @Override
     public String toString() {
         if(!stockDead) {
