@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,7 +28,9 @@ public class MainActivity extends Activity {
     TextView tBuy;
     TextView tDay;
 
-    int speed = 1000;
+    CountDownTimer countdownTimer;
+
+    long speed = 10000;
     int moneyToBuyFor;
     int balance;
     int progressBar;
@@ -70,6 +73,8 @@ public class MainActivity extends Activity {
 
         //Set the clickListeners
         initializeListeners();
+
+        updateStocksNextDay();
 
         welcome(); //Print welcome message.
 
@@ -163,7 +168,28 @@ public class MainActivity extends Activity {
 
         list.setAdapter(adapter);
 
+        setCounter(speed);
 
+
+    }
+
+    private void setCounter(long time){
+
+        if(countdownTimer != null) countdownTimer.cancel();
+        if(time != 0) {
+            countdownTimer = new CountDownTimer(time, 10) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+
+                }
+
+                @Override
+                public void onFinish() {
+                    updateStocksNextDay();
+                    start();
+                }
+            }.start();
+        }
     }
 
     private void updateMoneyToByFor(){
@@ -293,7 +319,7 @@ public class MainActivity extends Activity {
         adapter.sort(comp);
         adapter.notifyDataSetChanged();
 
-        list.setSelectionAfterHeaderView();
+        //list.setSelectionAfterHeaderView();
 
         updateSelectedBusiness();
     }
@@ -380,14 +406,16 @@ public class MainActivity extends Activity {
         TODO - this is in opposite order. Also should be changed to days per sec. Also
         needs to be implemented. :)
          */
-        else if(id == R.id.increaseSpeed){
-            speed += 1000;
-            int speedSec = speed / 1000;
+        else if(id == R.id.decreaseSpeed){
+            speed += 250;
+            double speedSec = speed / 1000d;
+            setCounter(speed);
             Toast.makeText(getApplicationContext(), "Speed is now " + speedSec + " sec per day", Toast.LENGTH_LONG).show();
-        }else if(id == R.id.decreaseSpeed){
-            if((speed-1000) > 0 ){
-                speed -= 1000;
-                int speedSec = speed / 1000;
+        }else if(id == R.id.increaseSpeed){
+            if((speed-250) > 0 ){
+                speed -= 250;
+                double speedSec = speed / 1000d;
+                setCounter(speed);
                 Toast.makeText(getApplicationContext(), "Speed is now " + speedSec + " sec per day", Toast.LENGTH_LONG).show();
 
             }else{

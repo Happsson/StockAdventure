@@ -86,10 +86,11 @@ public class Business{
         previousValue = value;
         day++;
 
-        int riskValue = rand.nextInt(20);
+        int riskValue = rand.nextInt(12);
 
         if(!stockDead) {
-            int val = (value * riskFactor/100)+1; //make sure val isn't 0.
+            int val = (value * riskFactor/100)+10; //make sure val isn't 0.
+
             if(val > 0) { //This is a bad fix, somethime val get bigger thatn INTEGTER.MAX_VALUE and flips.
                 if (riskValue < riskFactor) { //Higher risk with risky stocks
                     value -= rand.nextInt(val);
